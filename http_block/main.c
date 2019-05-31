@@ -25,7 +25,7 @@ int jfopen(u_char *data_buf)
         while(!feof(jfp))
         {
             pStr = fgets((char *)j_read_buff,sizeof(j_read_buff),jfp);
-            //printf("TEST:: %s \n", pStr);
+            printf("TEST:: %s \n", pStr);
             jmemcmp = memcmp(pStr,data_buf,strlen((char*)pStr));
             if(!jmemcmp)
                 printf("TEST True \n");
@@ -63,7 +63,7 @@ int jcheck(const u_char * packet)
             u_char data_buf[200];   //찾은 문자열 저장
             int jcheck=0;
             if(rc !=0){
-                    printf("Failed to match '%s' with '%s', returning %d. \n",http,pattern,rc);
+                    //printf("Failed to match '%s' with '%s', returning %d. \n",http,pattern,rc);
             }
             else {
                 sprintf((char *)data_buf,"%s",&http[pmatch[1].rm_so]);
@@ -76,7 +76,7 @@ int jcheck(const u_char * packet)
 
 int main(int argc, char* argv[]) {
 
-  jfp = fopen("DB.txt","r");
+  jfp = fopen("/Users/yunseongjun/Desktop/ccit/CCIT Github/http_block/http_block/DB.txt","r");
   //char* dev = argv[1];
   char* dev ="en0";
   char errbuf[PCAP_ERRBUF_SIZE];
