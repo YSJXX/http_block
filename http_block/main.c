@@ -1,6 +1,7 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>         // exit
+#include <net/ethernet.h>
 #include <netinet/ip.h>     //ip
 #include <netinet/tcp.h>    //tcp
 #include <regex.h>          //regex
@@ -43,32 +44,33 @@ int jcheck(const u_char * packet)
     struct ip * ip_header = (struct ip *)packet;
     struct tcphdr * tcp_header = (struct tcphdr *) (packet + (ip_header->ip_len<<2) );
     u_char * http = (u_char *)tcp_header + (tcp_header->th_off<<2); // next data 32
+    if(tcp_header->th_sport|| tcp_header->th_dport == 80){
+        regex_t state;
+            //char *string ="Host: sungjun.yoon";
+            const char *pattern= "Host: ([A-Za-z\\.0-9]+)";
+            int rc;
+            size_t nmatch =2;
+            regmatch_t pmatch[1];
+            char jbuffer[100];
+            printf("\n");
+            if((rc = regcomp(&state,pattern,REG_EXTENDED)) != 0){
+                printf("regcomp error!! '%s' \n",jbuffer);
+                exit(EXIT_FAILURE);     // 종료를 위한 정리(버퍼삭제, 열린파일 종료)
+            }
+            rc = regexec(&state,(char *)http,nmatch,pmatch,0);
+            regfree(&state);
 
-    regex_t state;
-        //char *string ="Host: sungjun.yoon";
-        const char *pattern= "Host: ([A-Za-z\\.0-9]+)";
-        int rc;
-        size_t nmatch =2;
-        regmatch_t pmatch[1];
-        char jbuffer[100];
-        printf("\n");
-        if((rc = regcomp(&state,pattern,REG_EXTENDED)) != 0){
-            printf("regcomp error!! '%s' \n",jbuffer);
-            exit(EXIT_FAILURE);     // 종료를 위한 정리(버퍼삭제, 열린파일 종료)
-        }
-        rc = regexec(&state,(char *)http,nmatch,pmatch,0);
-        regfree(&state);
-
-        u_char data_buf[200];   //찾은 문자열 저장
-        int jcheck=0;
-        if(rc !=0){
-                printf("Failed to match '%s' with '%s', returning %d. \n",http,pattern,rc);
-        }
-        else {
-            sprintf((char *)data_buf,"%s",&http[pmatch[1].rm_so]);
-            printf("데이터 이동 확인: %s \n",data_buf);
-            jcheck = jfopen(data_buf);
-        }
+            u_char data_buf[200];   //찾은 문자열 저장
+            int jcheck=0;
+            if(rc !=0){
+                    printf("Failed to match '%s' with '%s', returning %d. \n",http,pattern,rc);
+            }
+            else {
+                sprintf((char *)data_buf,"%s",&http[pmatch[1].rm_so]);
+                printf("데이터 이동 확인: %s \n",data_buf);
+                jcheck = jfopen(data_buf);
+            }
+    }
 }
 
 
